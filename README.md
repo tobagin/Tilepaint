@@ -1,6 +1,6 @@
 # Tilepaint
 
-A modern, native GTK4 implementation of the Hitori logic puzzle game for GNOME.
+A modern, native GTK4 implementation of the Tilepaint logic puzzle game for GNOME.
 
 <div align="center">
 
@@ -28,9 +28,9 @@ A modern, native GTK4 implementation of the Hitori logic puzzle game for GNOME.
 
 ### 🆕 What's New in 1.0.0
 
-- **New Identity**: Rebuilt and rebranded as Tilepaint, distinct from Hitori.
+- **New Identity**: Rebuilt and rebranded as Tilepaint.
 - **UI Overhaul**: Complete transition to Blueprint and Libadwaita.
-- **Headerbar Subtitle**: Added "GTK4 Hitori game" subtitle for context.
+- **Headerbar Subtitle**: Added "Logic Puzzle Game" subtitle for context.
 - **Enhanced Preferences**: integrated directly into the primary menu.
 
 For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md).
@@ -89,9 +89,9 @@ Tilepaint is licensed under the [GPL-3.0-or-later](COPYING).
 
 ## Acknowledgments
 
-- **Original Hitori Developers**: Philip Withnall, Ben Windsor.
+- **Original Developers**: Philip Withnall, Ben Windsor.
 - **GNOME**: For the GTK toolkit and Libadwaita.
-- **Nikoli**: For the original Hitori puzzle design.
+- **Nikoli**: For the original puzzle inspiration.
 
 ## Screenshots
 
