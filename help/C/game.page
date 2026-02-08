@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+	xmlns:its="http://www.w3.org/2005/11/its" type="topic" id="game">
+	<info>
+		<link type="guide" xref="index#play"/>
+		<include href="legal.xml"
+			xmlns="http://www.w3.org/2001/XInclude"/>
+		<desc>Introduction to the game of Tilepaint.</desc>
+	</info>
+	<title>Tilepaint the Game</title>
+
+	<p>Tilepaint (also known as Crazy Pavement) is a logic puzzle where the goal is to paint cells in a grid divided into regions (tiles). The following rules apply:</p>
+	<list>
+		<item>
+			<p>Each region (tile) must be either entirely painted or entirely unpainted.</p>
+		</item>
+		<item>
+			<p>The numbers at the top and left of the grid indicate how many cells in each column and row, respectively, must be painted.</p>
+		</item>
+	</list>
+	<p>A puzzle is solved when all regions are correctly set to either painted or unpainted, and all row and column totals match the clues.</p>
+
+	<figure>
+		<title>Main game window</title>
+		<desc>
+			<app>Tilepaint</app> main window</desc>
+		<media type="image" src="figures/tilepaint_main_window.png" mime="image/png" style="center">
+			<p>
+				<app>Tilepaint</app> main window.</p>
+		</media>
+	</figure>
+</page>

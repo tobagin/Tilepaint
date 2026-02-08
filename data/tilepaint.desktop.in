@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Tilepaint
+Comment=Play the Tilepaint puzzle game
+# Translators: Search terms to find this application. Do NOT translate or localise the semicolons! The list MUST also end with a semicolon!
+Keywords=puzzle;game;logic;grid;
+Exec=tilepaint
+# Translators: Do NOT translate or transliterate this text (this is an icon file name)!
+Icon=@APP_ID@
+Terminal=false
+Type=Application
+Categories=GTK;Game;LogicGame;
+StartupNotify=true

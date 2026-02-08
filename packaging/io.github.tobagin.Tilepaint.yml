@@ -1,0 +1,17 @@
+app-id: io.github.tobagin.Tilepaint
+runtime: org.gnome.Platform
+runtime-version: '49'
+sdk: org.gnome.Sdk
+command: tilepaint
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --metadata=X-DConf=migrate-path=/io.github.tobagin.tilepaint/
+modules:
+  - name: tilepaint
+    buildsystem: meson
+    sources:
+      - type: git
+        url: https://github.com/tobagin/Tilepaint.git
+        tag: 1.0.0

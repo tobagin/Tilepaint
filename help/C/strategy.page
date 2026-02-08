@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+	xmlns:its="http://www.w3.org/2005/11/its" type="topic" id="strategy">
+	<info>
+		<link type="guide" xref="index#tips"/>
+		<include href="legal.xml"
+			xmlns="http://www.w3.org/2001/XInclude"/>
+		<desc>Strategies for playing Tilepaint.</desc>
+	</info>
+	<title>Gameplay Strategies</title>
+
+	<p>Tilepaint requires logical deduction to determine which regions must be painted. One basic strategy is to look for rows or columns where the clue is equal to the total number of cells in the grid; in this case, all cells must be painted.</p>
+	<p>Conversely, if a clue is zero, all cells in that row or column must be unpainted. Because cells in the same region must share the same state, painting one cell in a region automatically means all others in that region must also be painted to have a valid solution.</p>
+	<p>Look for overlapping constraints where a large region spans multiple rows or columns. If painting that region would violate any of the clues in those lines, then the entire region must remain unpainted.</p>
+
+	<p>If you get stuck at any point, press <gui style="button">Hint</gui> in the header bar for <app>Tilepaint</app>
+		to hint a cell which should be painted or unpainted to move closer to a solution.</p>
+</page>

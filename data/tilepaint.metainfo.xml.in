@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2014 Philip Withnall <philip@tecnocode.co.uk> -->
+<component type="desktop-application">
+  <id>@APP_ID@</id>
+  <metadata_license>CC-BY-SA-3.0</metadata_license>
+  <project_license>GPL-3.0+</project_license>
+
+  <!-- Translators: the name of the application as it appears in a software center -->
+  <name>Tilepaint</name>
+
+  <!-- Translators: the brief summary of the application as it appears in a software center. -->
+  <summary>Master the art of deduction in this modern logic puzzle game</summary>
+  <description>
+    <p>
+      Tilepaint (also known as Crazy Pavement) is a logic puzzle where the goal is to paint cells in a grid divided into regions (tiles). The puzzle is solved when all regions are correctly set to either painted or unpainted, following two core rules:
+    </p>
+    <ul>
+      <li>Each region must be either entirely painted or entirely unpainted.</li>
+      <li>The clue numbers at the top and left of the grid indicate exactly how many cells in each column and row must be painted.</li>
+    </ul>
+    <p>
+      Rebuilt for the modern GNOME desktop, Tilepaint features a beautiful, adaptive user interface
+      using GTK4 and Libadwaita. It offers a relaxing yet challenging experience with multiple board sizes,
+      keyboard navigation, and helper tools to guide your way.
+    </p>
+  </description>
+  <screenshots>
+    <screenshot type="default" width="1200" height="675">
+      <image>https://raw.githubusercontent.com/tobagin/Tilepaint/main/data/screenshots/main-window.png</image>
+      <caption>Main Window</caption>
+    </screenshot>
+    <screenshot width="1200" height="675">
+      <image>https://raw.githubusercontent.com/tobagin/Tilepaint/main/data/screenshots/dark-board-theme.png</image>
+      <caption>Dark Mode</caption>
+    </screenshot>
+    <screenshot width="1200" height="675">
+      <image>https://raw.githubusercontent.com/tobagin/Tilepaint/main/data/screenshots/painted-squares.png</image>
+      <caption>Logic Gameplay</caption>
+    </screenshot>
+    <screenshot width="1200" height="675">
+      <image>https://raw.githubusercontent.com/tobagin/Tilepaint/main/data/screenshots/you-win.png</image>
+      <caption>Victory!</caption>
+    </screenshot>
+    <screenshot width="1200" height="675">
+      <image>https://raw.githubusercontent.com/tobagin/Tilepaint/main/data/screenshots/pause.png</image>
+      <caption>Pause Overlay</caption>
+    </screenshot>
+    <screenshot width="1200" height="675">
+      <image>https://raw.githubusercontent.com/tobagin/Tilepaint/main/data/screenshots/high-scores.png</image>
+      <caption>High Scores</caption>
+    </screenshot>
+    <screenshot width="1200" height="675">
+      <image>https://raw.githubusercontent.com/tobagin/Tilepaint/main/data/screenshots/about.png</image>
+      <caption>About Dialog</caption>
+    </screenshot>
+    <screenshot width="1200" height="675">
+      <image>https://raw.githubusercontent.com/tobagin/Tilepaint/main/data/screenshots/keyboard-shortcus.png</image>
+      <caption>Keyboard Shortcuts</caption>
+    </screenshot>
+  </screenshots>
+  <provides>
+    <binary>tilepaint</binary>
+  </provides>
+  <launchable type="desktop-id">@APP_ID@.desktop</launchable>
+  <url type="homepage">https://github.com/tobagin/Tilepaint</url>
+  <url type="bugtracker">https://github.com/tobagin/Tilepaint/issues</url>
+  <url type="vcs-browser">https://github.com/tobagin/Tilepaint</url>
+  <update_contact>philip_at_tecnocode.co.uk</update_contact>
+  <developer_name>Thiago Fernandes</developer_name>
+  <kudos>
+    <kudo>AppMenu</kudo>
+    <kudo>HighContrast</kudo>
+    <kudo>HiDpiIcon</kudo>
+    <kudo>ModernToolkit</kudo>
+    <kudo>UserDocs</kudo>
+  </kudos>
+  <recommends>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+  </recommends>
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+  <translation type="gettext">tilepaint</translation>
+  <releases>
+    <release version="1.0.0" date="2026-02-08" type="stable">
+      <description>
+        <p>Tilepaint 1.0.0 is a major release, reimagining the logic puzzle for the modern GNOME ecosystem.</p>
+        <ul>
+          <li>**Guaranteed Unique Solutions**: Every generated puzzle is now verified to have exactly one solution.</li>
+          <li>**Anti-Peeking Features**: The pause overlay now hides clue numbers, and the board rendering is perfectly consistent to prevent solution leaks.</li>
+          <li>**Tile-based Logic**: New game mechanics focusing on region-based painting and clue totals.</li>
+          <li>**Modern Foundation**: Complete rewrite using GTK4 and Libadwaita for a fluid, adaptive UI.</li>
+          <li>**System Color Integration**: Clue numbers and board themes adapt to your system's light/dark mode.</li>
+          <li>**Enhanced Accessibility**: Full keyboard navigation support (WASD, HJKL, or Arrow keys).</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1" />
+</component>

@@ -1,0 +1,470 @@
+/* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
+/*
+ * Tilepaint
+ * Copyright (C) Philip Withnall 2007-2009 <philip@tecnocode.co.uk>
+ *
+ * Tilepaint is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Tilepaint is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Tilepaint.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include <adwaita.h>
+#include <config.h>
+#include <glib/gi18n.h>
+#include <glib/gprintf.h>
+#include <gtk/gtk.h>
+#include <locale.h>
+#include <stdlib.h>
+
+#include "generator.h"
+#include "interface.h"
+#include "main.h"
+
+static void constructed(GObject *object);
+static void get_property(GObject *object, guint property_id, GValue *value,
+                         GParamSpec *pspec);
+static void set_property(GObject *object, guint property_id,
+                         const GValue *value, GParamSpec *pspec);
+
+static void startup(GApplication *application);
+static void activate(GApplication *application);
+
+typedef struct {
+  /* Command line parameters. */
+  gboolean debug;
+  guint seed;
+} TilepaintApplicationPrivate;
+
+typedef enum { PROP_DEBUG = 1, PROP_SEED } TilepaintProperty;
+
+G_DEFINE_TYPE_WITH_PRIVATE(TilepaintApplication, tilepaint_application,
+                           GTK_TYPE_APPLICATION)
+
+static void shutdown(GApplication *application) {
+  TilepaintApplication *self = TILEPAINT_APPLICATION(application);
+
+  tilepaint_free_board(self);
+  tilepaint_clear_undo_stack(self);
+  g_free(self->undo_stack); /* Clear the new game element */
+
+  /* Remove any active timeouts to prevent callback after shutdown */
+  if (self->timeout_id > 0) {
+    g_source_remove(self->timeout_id);
+    self->timeout_id = 0;
+  }
+  if (self->hint_timeout_id > 0) {
+    g_source_remove(self->hint_timeout_id);
+    self->hint_timeout_id = 0;
+  }
+
+  if (self->normal_font_desc != NULL)
+    pango_font_description_free(self->normal_font_desc);
+  if (self->painted_font_desc != NULL)
+    pango_font_description_free(self->painted_font_desc);
+
+  if (self->settings)
+    g_object_unref(self->settings);
+
+  /* Chain up to the parent class */
+  G_APPLICATION_CLASS(tilepaint_application_parent_class)
+      ->shutdown(application);
+}
+
+static void tilepaint_application_class_init(TilepaintApplicationClass *klass) {
+  GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+  GApplicationClass *gapplication_class = G_APPLICATION_CLASS(klass);
+
+  gobject_class->constructed = constructed;
+  gobject_class->get_property = get_property;
+  gobject_class->set_property = set_property;
+
+  gapplication_class->startup = startup;
+  gapplication_class->shutdown = shutdown;
+  gapplication_class->activate = activate;
+
+  g_object_class_install_property(
+      gobject_class, PROP_DEBUG,
+      g_param_spec_boolean("debug", "Debugging Mode",
+                           "Whether debugging mode is active.", FALSE,
+                           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property(
+      gobject_class, PROP_SEED,
+      g_param_spec_uint("seed", "Generation Seed",
+                        "Seed controlling generation of the board.", 0,
+                        G_MAXUINT, 0,
+                        G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+}
+
+static void tilepaint_application_init(TilepaintApplication *self) {
+  TilepaintApplicationPrivate *priv;
+
+  priv = tilepaint_application_get_instance_private(self);
+
+  priv->debug = FALSE;
+  priv->seed = 0;
+}
+
+static void constructed(GObject *object) {
+  TilepaintApplicationPrivate *priv;
+
+  priv =
+      tilepaint_application_get_instance_private(TILEPAINT_APPLICATION(object));
+
+  /* Set various properties up */
+  g_application_set_application_id(G_APPLICATION(object), APPLICATION_ID);
+
+  /* Localisation */
+  setlocale(LC_ALL, "");
+  bindtextdomain(PACKAGE, PACKAGE_LOCALE_DIR);
+  bind_textdomain_codeset(PACKAGE, "UTF-8");
+  textdomain(PACKAGE);
+
+  const GOptionEntry options[] = {
+      {"debug", 0, 0, G_OPTION_ARG_NONE, &(priv->debug),
+       N_("Enable debug mode"), NULL},
+      /* Translators: This means to choose a number as the "seed" for random
+         number generation used when creating a board */
+      {"seed", 0, 0, G_OPTION_ARG_INT, &(priv->seed),
+       N_("Seed the board generation"), NULL},
+      {NULL}};
+
+  g_application_add_main_option_entries(G_APPLICATION(object), options);
+  g_application_set_option_context_parameter_string(
+      G_APPLICATION(object), _("- Play a game of Tilepaint"));
+
+  g_set_application_name(_("Tilepaint"));
+  g_set_prgname(APPLICATION_ID);
+
+  /* Chain up to the parent class */
+  G_OBJECT_CLASS(tilepaint_application_parent_class)->constructed(object);
+}
+
+static void get_property(GObject *object, guint property_id, GValue *value,
+                         GParamSpec *pspec) {
+  TilepaintApplicationPrivate *priv;
+
+  priv =
+      tilepaint_application_get_instance_private(TILEPAINT_APPLICATION(object));
+
+  switch (property_id) {
+  case PROP_DEBUG:
+    g_value_set_boolean(value, priv->debug);
+    break;
+  case PROP_SEED:
+    g_value_set_uint(value, priv->seed);
+    break;
+  default:
+    /* We don't have any other property... */
+    G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+    break;
+  }
+}
+
+static void set_property(GObject *object, guint property_id,
+                         const GValue *value, GParamSpec *pspec) {
+  TilepaintApplicationPrivate *priv;
+
+  priv =
+      tilepaint_application_get_instance_private(TILEPAINT_APPLICATION(object));
+
+  switch (property_id) {
+  case PROP_DEBUG:
+    priv->debug = g_value_get_boolean(value);
+    break;
+  case PROP_SEED:
+    priv->seed = g_value_get_uint(value);
+    break;
+  default:
+    /* We don't have any other property... */
+    G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+    break;
+  }
+}
+
+static void debug_handler(const char *log_domain, GLogLevelFlags log_level,
+                          const char *message, TilepaintApplication *self) {
+  TilepaintApplicationPrivate *priv;
+
+  priv = tilepaint_application_get_instance_private(self);
+
+  /* Only display debug messages if we've been run with --debug */
+  if (priv->debug == TRUE) {
+    g_log_default_handler(log_domain, log_level, message, NULL);
+  }
+}
+
+static void startup(GApplication *application) {
+  /* Chain up. */
+  G_APPLICATION_CLASS(tilepaint_application_parent_class)->startup(application);
+
+  /* Initialize Libadwaita */
+  adw_init();
+
+  /* Debug log handling */
+  g_log_set_handler(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, (GLogFunc)debug_handler,
+                    application);
+}
+
+static void activate(GApplication *application) {
+  TilepaintApplication *self = TILEPAINT_APPLICATION(application);
+  TilepaintApplicationPrivate *priv;
+
+  priv = tilepaint_application_get_instance_private(self);
+
+  /* Create the interface. */
+  if (self->window == NULL) {
+    GdkRectangle geometry;
+    TilepaintUndo *undo;
+    gboolean window_maximized;
+    gchar *size_str;
+
+    /* Setup */
+    self->debug = priv->debug;
+    self->settings = g_settings_new(APPLICATION_ID);
+    size_str = g_settings_get_string(self->settings, "board-size");
+    self->board_size = g_ascii_strtoull(size_str, NULL, 10);
+    g_free(size_str);
+
+    if (self->board_size > MAX_BOARD_SIZE) {
+      GVariant *default_size =
+          g_settings_get_default_value(self->settings, "board-size");
+      g_variant_get(default_size, "s", &size_str);
+      g_variant_unref(default_size);
+      self->board_size = g_ascii_strtoull(size_str, NULL, 10);
+      g_free(size_str);
+      g_assert(self->board_size <= MAX_BOARD_SIZE);
+    }
+
+    undo = g_new0(TilepaintUndo, 1);
+    undo->type = UNDO_NEW_GAME;
+    self->undo_stack = undo;
+
+    /* Showtime! */
+    tilepaint_create_interface(self);
+    tilepaint_generate_board(self, self->board_size, priv->seed);
+
+    /* Restore window position and size */
+    window_maximized =
+        g_settings_get_boolean(self->settings, "window-maximized");
+    g_settings_get(self->settings, "window-position", "(ii)", &geometry.x,
+                   &geometry.y);
+    g_settings_get(self->settings, "window-size", "(ii)", &geometry.width,
+                   &geometry.height);
+
+    if (window_maximized) {
+      gtk_window_maximize(GTK_WINDOW(self->window));
+    } else {
+      /* Note: gtk_window_move is removed in GTK4, position is managed by
+       * compositor */
+
+      if (geometry.width >= 0 && geometry.height >= 0) {
+        gtk_window_set_default_size(GTK_WINDOW(self->window), geometry.width,
+                                    geometry.height);
+      }
+    }
+
+    gtk_window_set_application(GTK_WINDOW(self->window), GTK_APPLICATION(self));
+    gtk_widget_set_visible(self->window, TRUE);
+  }
+
+  /* Bring it to the foreground */
+  gtk_window_present(GTK_WINDOW(self->window));
+}
+
+TilepaintApplication *tilepaint_application_new(void) {
+  return TILEPAINT_APPLICATION(g_object_new(TILEPAINT_TYPE_APPLICATION, NULL));
+}
+
+void tilepaint_new_game(Tilepaint *tilepaint, guint board_size) {
+  tilepaint->made_a_move = FALSE;
+
+  tilepaint_generate_board(tilepaint, board_size, 0);
+  tilepaint_clear_undo_stack(tilepaint);
+  gtk_widget_queue_draw(tilepaint->drawing_area);
+
+  tilepaint_reset_timer(tilepaint);
+  tilepaint_start_timer(tilepaint);
+
+  /* Reset the cursor position */
+  tilepaint->cursor_position.x = 0;
+  tilepaint->cursor_position.y = 0;
+}
+
+void tilepaint_clear_undo_stack(Tilepaint *tilepaint) {
+  /* Clear the undo stack */
+  if (tilepaint->undo_stack != NULL) {
+    while (tilepaint->undo_stack->redo != NULL)
+      tilepaint->undo_stack = tilepaint->undo_stack->redo;
+
+    while (tilepaint->undo_stack->undo != NULL) {
+      tilepaint->undo_stack = tilepaint->undo_stack->undo;
+      g_free(tilepaint->undo_stack->redo);
+      if (tilepaint->undo_stack->type == UNDO_NEW_GAME)
+        break;
+    }
+
+    /* Reset the "new game" item */
+    tilepaint->undo_stack->undo = NULL;
+    tilepaint->undo_stack->redo = NULL;
+  }
+
+  g_simple_action_set_enabled(tilepaint->undo_action, FALSE);
+  g_simple_action_set_enabled(tilepaint->redo_action, FALSE);
+}
+
+static void board_size_dialog_response_cb(GObject *source, GAsyncResult *result,
+                                          gpointer user_data) {
+  guint board_size = GPOINTER_TO_UINT(user_data);
+  AdwAlertDialog *dialog = ADW_ALERT_DIALOG(source);
+  const char *response = adw_alert_dialog_choose_finish(dialog, result);
+  Tilepaint *tilepaint =
+      TILEPAINT_APPLICATION(g_object_get_data(G_OBJECT(dialog), "tilepaint"));
+
+  if (g_strcmp0(response, "new-game") == 0) {
+    /* Kill the current game and resize the board */
+    tilepaint_new_game(tilepaint, board_size);
+  }
+}
+
+void tilepaint_set_board_size(Tilepaint *tilepaint, guint board_size) {
+  /* Ask the user if they want to stop the current game, if they're playing at
+   * the moment */
+  if (tilepaint->processing_events == TRUE && tilepaint->made_a_move == TRUE) {
+    AdwAlertDialog *dialog;
+
+    dialog = ADW_ALERT_DIALOG(adw_alert_dialog_new(
+        _("Stop Current Game?"), _("Do you want to stop the current game?")));
+
+    adw_alert_dialog_add_responses(dialog, "keep-playing", _("Keep _Playing"),
+                                   "new-game", _("_New Game"), NULL);
+
+    adw_alert_dialog_set_response_appearance(dialog, "new-game",
+                                             ADW_RESPONSE_SUGGESTED);
+    adw_alert_dialog_set_default_response(dialog, "keep-playing");
+    adw_alert_dialog_set_close_response(dialog, "keep-playing");
+
+    g_object_set_data(G_OBJECT(dialog), "tilepaint", tilepaint);
+
+    adw_alert_dialog_choose(dialog, GTK_WIDGET(tilepaint->window), NULL,
+                            board_size_dialog_response_cb,
+                            GUINT_TO_POINTER(board_size));
+  } else {
+    /* Kill the current game and resize the board */
+    tilepaint_new_game(tilepaint, board_size);
+  }
+}
+
+void tilepaint_print_board(Tilepaint *tilepaint) {
+  if (tilepaint->debug) {
+    TilepaintVector iter;
+
+    for (iter.y = 0; iter.y < tilepaint->board_size; iter.y++) {
+      for (iter.x = 0; iter.x < tilepaint->board_size; iter.x++) {
+        if ((tilepaint->board[iter.x][iter.y].status & CELL_PAINTED) == FALSE)
+          g_printf("%u ", tilepaint->board[iter.x][iter.y].tile_id);
+        else
+          g_printf("X ");
+      }
+      g_printf("\n");
+    }
+  }
+}
+
+void tilepaint_free_board(Tilepaint *tilepaint) {
+  guint i;
+
+  if (tilepaint->board == NULL)
+    return;
+
+  for (i = 0; i < tilepaint->board_size; i++)
+    g_slice_free1(sizeof(TilepaintCell) * tilepaint->board_size,
+                  tilepaint->board[i]);
+  g_free(tilepaint->board);
+  tilepaint->board = NULL;
+}
+
+void tilepaint_enable_events(Tilepaint *tilepaint) {
+  tilepaint->processing_events = TRUE;
+
+  if (tilepaint->undo_stack->redo != NULL)
+    g_simple_action_set_enabled(tilepaint->redo_action, TRUE);
+  if (tilepaint->undo_stack->undo != NULL)
+    g_simple_action_set_enabled(tilepaint->undo_action, TRUE);
+  g_simple_action_set_enabled(tilepaint->hint_action, TRUE);
+
+  tilepaint_start_timer(tilepaint);
+}
+
+void tilepaint_disable_events(Tilepaint *tilepaint) {
+  tilepaint->processing_events = FALSE;
+  g_simple_action_set_enabled(tilepaint->redo_action, FALSE);
+  g_simple_action_set_enabled(tilepaint->undo_action, FALSE);
+  g_simple_action_set_enabled(tilepaint->hint_action, FALSE);
+
+  tilepaint_pause_timer(tilepaint);
+}
+
+static void set_timer_label(Tilepaint *tilepaint) {
+  gchar *text =
+      g_strdup_printf("%02u∶\xE2\x80\x8E%02u", tilepaint->timer_value / 60,
+                      tilepaint->timer_value % 60);
+  gtk_label_set_text(tilepaint->timer_label, text);
+  g_free(text);
+}
+
+static gboolean update_timer_cb(Tilepaint *tilepaint) {
+  tilepaint->timer_value++;
+  set_timer_label(tilepaint);
+
+  return TRUE;
+}
+
+void tilepaint_start_timer(Tilepaint *tilepaint) {
+  // Remove any old timeout
+  tilepaint_pause_timer(tilepaint);
+
+  set_timer_label(tilepaint);
+  tilepaint->timeout_id =
+      g_timeout_add_seconds(1, (GSourceFunc)update_timer_cb, tilepaint);
+}
+
+void tilepaint_pause_timer(Tilepaint *tilepaint) {
+  if (tilepaint->timeout_id > 0) {
+    g_source_remove(tilepaint->timeout_id);
+    tilepaint->timeout_id = 0;
+  }
+}
+
+void tilepaint_reset_timer(Tilepaint *tilepaint) {
+  tilepaint->timer_value = 0;
+  set_timer_label(tilepaint);
+}
+
+void tilepaint_quit(Tilepaint *tilepaint) {
+  g_application_quit(G_APPLICATION(tilepaint));
+}
+
+int main(int argc, char *argv[]) {
+  TilepaintApplication *app;
+  int status;
+
+#if !GLIB_CHECK_VERSION(2, 35, 0)
+  g_type_init();
+#endif
+
+  app = tilepaint_application_new();
+  status = g_application_run(G_APPLICATION(app), argc, argv);
+  g_object_unref(app);
+
+  return status;
+}

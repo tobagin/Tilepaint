@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="@apppath@ui">
+    <file preprocess="xml-stripblanks" alias="tilepaint.ui">data/tilepaint.ui</file>
+    <file alias="tilepaint.css">data/tilepaint.css</file>
+  </gresource>
+  <gresource prefix="@apppath@gtk">
+    <file preprocess="xml-stripblanks" alias="help-overlay.ui">data/help-overlay.ui</file>
+    <file alias="@appid@.metainfo.xml">data/@METAINFO_FILE@</file>
+  </gresource>
+</gresources>

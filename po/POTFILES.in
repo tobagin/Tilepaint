@@ -1,0 +1,9 @@
+# List of source files containing translatable strings.
+data/tilepaint.desktop.in
+data/tilepaint.metainfo.xml.in
+data/help-overlay.ui
+data/tilepaint.ui
+data/io.github.tobagin.Tilepaint.gschema.xml.in
+src/interface.c
+src/main.c
+src/rules.c
