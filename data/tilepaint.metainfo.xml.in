@@ -84,6 +84,14 @@
   </requires>
   <translation type="gettext">tilepaint</translation>
   <releases>
+    <release version="1.0.1" date="2026-02-08" type="stable">
+      <description>
+        <p>Tilepaint 1.0.1 is a patch release improving the victory logic.</p>
+        <ul>
+          <li>**Relaxed Victory Condition**: The game now accepts any board state that visually matches the row and column clues, resolving cases where valid solutions were rejected.</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.0" date="2026-02-08" type="stable">
       <description>
         <p>Tilepaint 1.0.0 is a major release, reimagining the logic puzzle for the modern GNOME ecosystem.</p>

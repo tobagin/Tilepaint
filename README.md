@@ -26,12 +26,9 @@ A modern, native GTK4 implementation of the Tilepaint logic puzzle game for GNOM
 - **📏 Multiple Board Sizes**: Choose from 5x5 up to 10x10 grids to match your skill level.
 - **UNDO/REDO**: Make mistakes without worry with full undo/redo support.
 
-### 🆕 What's New in 1.0.0
+### 🆕 What's New in 1.0.1
 
-- **New Identity**: Rebuilt and rebranded as Tilepaint.
-- **UI Overhaul**: Complete transition to Blueprint and Libadwaita.
-- **Headerbar Subtitle**: Added "Logic Puzzle Game" subtitle for context.
-- **Enhanced Preferences**: integrated directly into the primary menu.
+- **Victory Condition Relaxed**: The game now accepts any valid visual solution that matches the row and column clues, resolving issues with "double solution" puzzles.
 
 For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md).
 

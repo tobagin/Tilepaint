@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] - 2026-02-08
+
+### Fixed
+- **Victory Condition**: Relaxed the win check to accept any board state that visually matches the row and column clues. This fixes an issue where valid solutions were rejected because they didn't match the internal hidden tile structure.
+
 ## [1.0.0] - 2026-02-08
 
 ### Changed
