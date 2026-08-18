@@ -9,3 +9,5 @@ data/gschemas.compiled
 *~
 build.log
 build_verbose*.log
+.fusion/
+.fusion-knowledge/

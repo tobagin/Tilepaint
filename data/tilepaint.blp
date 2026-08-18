@@ -7,41 +7,53 @@ menu primary-menu {
       label: _("_New Game");
       action: "app.new-game";
     }
+
     item {
       label: _("High _Scores");
       action: "app.high-scores";
+    }
+
+    item {
+      label: _("_Preferences");
+      action: "app.preferences";
     }
   }
 
   section {
     submenu {
       label: _("Board _Size");
+
       section {
         item {
           label: _("5×5");
           action: "app.board-size";
           target: "5";
         }
+
         item {
           label: _("6×6");
           action: "app.board-size";
           target: "6";
         }
+
         item {
           label: _("7×7");
           action: "app.board-size";
           target: "7";
         }
+
         item {
           label: _("8×8");
           action: "app.board-size";
           target: "8";
         }
+
         item {
           label: _("9×9");
           action: "app.board-size";
           target: "9";
         }
+
         item {
           label: _("10×10");
           action: "app.board-size";
@@ -52,17 +64,20 @@ menu primary-menu {
 
     submenu {
       label: _("Board _Theme");
+
       section {
         item {
           label: _("Auto");
           action: "app.board-theme";
           target: "auto";
         }
+
         item {
           label: _("Dark");
           action: "app.board-theme";
           target: "dark";
         }
+
         item {
           label: _("Light");
           action: "app.board-theme";
@@ -74,21 +89,15 @@ menu primary-menu {
 
   section {
     item {
-      label: _("_Preferences");
-      action: "app.preferences";
-    }
-  }
-
-  section {
-
-    item {
       label: _("_Keyboard Shortcuts");
       action: "win.show-help-overlay";
     }
+
     item {
       label: _("_Help");
       action: "app.help";
     }
+
     item {
       label: _("_About Tilepaint");
       action: "app.about";
@@ -109,7 +118,9 @@ Adw.ApplicationWindow tilepaint_main_window {
 
       [start]
       Gtk.Box undo_redo_box {
-        styles ["linked"]
+        styles [
+          "linked",
+        ]
 
         Gtk.Button undo_button {
           sensitive: false;
@@ -186,7 +197,9 @@ Adw.ApplicationWindow tilepaint_main_window {
           vexpand: true;
           visible: false;
 
-          styles ["pause-overlay"]
+          styles [
+            "pause-overlay",
+          ]
 
           Gtk.CenterBox {
             orientation: vertical;
@@ -204,21 +217,27 @@ Adw.ApplicationWindow tilepaint_main_window {
               orientation: vertical;
               spacing: 12;
 
-            Gtk.Label {
-              label: _("Paused");
-              justify: center;
-              halign: center;
-              styles ["large-title"]
-            }
+              Gtk.Label {
+                label: _("Paused");
+                justify: center;
+                halign: center;
 
-            Gtk.Label {
-              label: _("Press Play to resume");
-              justify: center;
-              halign: center;
-              styles ["title-2"]
+                styles [
+                  "large-title",
+                ]
+              }
+
+              Gtk.Label {
+                label: _("Press Play to resume");
+                justify: center;
+                halign: center;
+
+                styles [
+                  "title-2",
+                ]
+              }
             }
           }
-        }
         }
       }
 
