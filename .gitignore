@@ -11,3 +11,4 @@ build.log
 build_verbose*.log
 .fusion/
 .fusion-knowledge/
+.worktrees/
