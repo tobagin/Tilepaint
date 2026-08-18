@@ -28,6 +28,9 @@ G_BEGIN_DECLS
 
 GtkWidget* tilepaint_create_interface (Tilepaint *tilepaint);
 
+GdkRGBA tilepaint_clue_color(TilepaintApplication *tilepaint, int count,
+                             int clue, gboolean feedback);
+
 G_END_DECLS
 
 #endif /* TILEPAINT_INTERFACE_H */

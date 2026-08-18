@@ -68,6 +68,7 @@ typedef struct {
   GdkRGBA unpainted_text;
   GdkRGBA painted_text;
   GdkRGBA error_text;
+  GdkRGBA success_text;
 } TilepaintTheme;
 
 typedef struct {

@@ -1,5 +1,5 @@
 project('tilepaint', 'c',
-  version: '1.0.1',
+  version: '1.1.0',
   meson_version : '>= 0.58.0',
   license: 'GPLv3+',
   default_options : [
@@ -101,6 +101,7 @@ add_project_arguments(cc.get_supported_arguments(test_c_args), language: 'c')
 
 compiled_ui_files = []
 subdir('data')
+subdir('tests')
 subdir('help')
 subdir('po')
 subdir('src')

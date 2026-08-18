@@ -2,6 +2,7 @@
 <gresources>
   <gresource prefix="@apppath@ui">
     <file preprocess="xml-stripblanks" alias="tilepaint.ui">data/tilepaint.ui</file>
+    <file preprocess="xml-stripblanks" alias="preferences.ui">data/preferences.ui</file>
     <file alias="tilepaint.css">data/tilepaint.css</file>
   </gresource>
   <gresource prefix="@apppath@gtk">

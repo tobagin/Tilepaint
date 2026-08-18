@@ -25,7 +25,7 @@ resources = gnome.compile_resources(
   'tilepaint-resources',
   gresource_file,
   source_dir: [meson.source_root(), meson.project_build_root()],
-  dependencies: compiled_ui_files,
+  dependencies: compiled_ui_files + [metainfo_file],
 )
 
 config_header = configure_file(

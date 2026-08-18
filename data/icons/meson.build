@@ -1,9 +1,17 @@
 scalable_dir = join_paths('hicolor', 'scalable', 'apps')
-install_data(
-  join_paths('scalable', 'tilepaint.svg'),
-  rename: ('@0@.svg'.format(application_id)),
-  install_dir: join_paths(get_option('datadir'), 'icons', scalable_dir)
-)
+if profile == 'Devel'
+  install_data(
+    join_paths('scalable', 'tilepaint-devel.svg'),
+    rename: ('@0@.svg'.format(application_id)),
+    install_dir: join_paths(get_option('datadir'), 'icons', scalable_dir)
+  )
+else
+  install_data(
+    join_paths('scalable', 'tilepaint.svg'),
+    rename: ('@0@.svg'.format(application_id)),
+    install_dir: join_paths(get_option('datadir'), 'icons', scalable_dir)
+  )
+endif
 
 install_data(
     join_paths('hicolor', '512x512', 'apps', 'tilepaint.png'),

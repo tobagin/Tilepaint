@@ -8,3 +8,4 @@ data/gschemas.compiled
 *.a
 *~
 build.log
+build_verbose*.log

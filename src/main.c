@@ -71,6 +71,11 @@ static void shutdown(GApplication *application) {
   if (self->painted_font_desc != NULL)
     pango_font_description_free(self->painted_font_desc);
 
+  if (self->preferences_dialog) {
+    g_object_unref(self->preferences_dialog);
+    self->preferences_dialog = NULL;
+  }
+
   if (self->settings)
     g_object_unref(self->settings);
 

@@ -26,6 +26,10 @@ A modern, native GTK4 implementation of the Tilepaint logic puzzle game for GNOM
 - **📏 Multiple Board Sizes**: Choose from 5x5 up to 10x10 grids to match your skill level.
 - **UNDO/REDO**: Make mistakes without worry with full undo/redo support.
 
+### 🆕 What's New in 1.1.0
+
+- **Preferences & Clue Color Feedback**: Open Preferences from the primary menu to enable clue color feedback — clues turn green when exact and red when over-painted, updating instantly without restart (works for 5×5–10×10 and light/dark themes).
+
 ### 🆕 What's New in 1.0.1
 
 - **Victory Condition Relaxed**: The game now accepts any valid visual solution that matches the row and column clues, resolving issues with "double solution" puzzles.

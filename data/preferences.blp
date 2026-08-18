@@ -1,0 +1,21 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.PreferencesDialog preferences_dialog {
+  title: _("Preferences");
+
+  Adw.PreferencesPage {
+    title: _("General");
+    icon-name: "preferences-system-symbolic";
+
+    Adw.PreferencesGroup {
+      title: _("Gameplay");
+
+      Adw.SwitchRow clue_color_feedback_row {
+        title: _("Clue Color Feedback");
+        subtitle: _("Color row and column clues green when exact, red when over");
+        activatable: true;
+      }
+    }
+  }
+}

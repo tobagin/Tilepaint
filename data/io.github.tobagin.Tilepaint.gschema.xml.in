@@ -31,5 +31,10 @@
 			<summary>High scores</summary>
 			<description>List of high scores (board_size, name, time).</description>
 		</key>
+		<key name="clue-color-feedback" type="b">
+			<default>false</default>
+			<summary>Clue color feedback</summary>
+			<description>Color row and column clues green when the painted count exactly matches the clue and red when over-painted; disabled by default.</description>
+		</key>
 	</schema>
 </schemalist>

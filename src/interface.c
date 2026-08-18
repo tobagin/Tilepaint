@@ -48,7 +48,8 @@ static const TilepaintTheme theme_dark = {
     {0.102, 0.102, 0.102, 1.0}, /* painted_border: #1a1a1a */
     {0.965, 0.961, 0.957, 1.0}, /* unpainted_text: #f6f5f4 */
     {0.427, 0.427, 0.427, 1.0}, /* painted_text: #6d6d6d */
-    {1.0, 0.482, 0.388, 1.0}    /* error_text: #ff7b63 */
+    {1.0, 0.482, 0.388, 1.0},   /* error_text: #ff7b63 */
+    {0.200, 0.820, 0.478, 1.0}  /* success_text: #33d17a */
 };
 
 static const TilepaintTheme theme_light = {
@@ -58,8 +59,28 @@ static const TilepaintTheme theme_light = {
     {0.730, 0.737, 0.722, 1.0}, /* painted_border: #babcb8 */
     {0.180, 0.204, 0.212, 1.0}, /* unpainted_text: #2e3436 */
     {0.655, 0.671, 0.655, 1.0}, /* painted_text: #a7aba7 */
-    {0.937, 0.161, 0.161, 1.0}  /* error_text: #ef2929 */
+    {0.937, 0.161, 0.161, 1.0}, /* error_text: #ef2929 */
+    {0.106, 0.604, 0.239, 1.0}  /* success_text: #1b9a3d */
 };
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waggregate-return"
+GdkRGBA tilepaint_clue_color(TilepaintApplication *tilepaint, int count,
+                             int clue, gboolean feedback) {
+  g_return_val_if_fail(tilepaint != NULL, (GdkRGBA){0});
+  g_return_val_if_fail(tilepaint->theme != NULL, (GdkRGBA){0});
+  if (!feedback) {
+    return tilepaint->theme->unpainted_text;
+  }
+  if (count > clue) {
+    return tilepaint->theme->error_text;
+  }
+  if (count == clue) {
+    return tilepaint->theme->success_text;
+  }
+  return tilepaint->theme->unpainted_text;
+}
+#pragma GCC diagnostic pop
 
 /* Declarations for GtkBuilder */
 void tilepaint_draw_cb(GtkDrawingArea *drawing_area, cairo_t *cr, int width,
@@ -102,6 +123,11 @@ static void style_manager_dark_changed_cb(AdwStyleManager *style_manager,
 
 static void high_scores_cb(GSimpleAction *action, GVariant *parameter,
                            gpointer user_data);
+static void on_clue_color_feedback_changed(GSettings *settings,
+                                           const gchar *key,
+                                           gpointer user_data);
+static void preferences_cb(GSimpleAction *action, GVariant *parameter,
+                           gpointer user_data);
 
 static GActionEntry app_entries[] = {
     {"new-game", new_game_cb, NULL, NULL, NULL},
@@ -111,6 +137,7 @@ static GActionEntry app_entries[] = {
     {"quit", quit_cb, NULL, NULL, NULL},
     {"board-size", board_size_cb, "s", "'5'", NULL},
     {"board-theme", board_theme_cb, "s", "'tilepaint'", NULL},
+    {"preferences", preferences_cb, NULL, NULL, NULL},
 };
 
 static GActionEntry win_entries[] = {
@@ -472,9 +499,11 @@ GtkWidget *tilepaint_create_interface(TilepaintApplication *tilepaint) {
   GtkCssProvider *css_provider;
   GAction *action;
 
+  gchar *tmp_app_path = g_strdup(APPLICATION_ID);
+  g_strdelimit(tmp_app_path, ".", '/');
   gchar *resource_path =
-      g_strconcat("/", g_strdelimit(g_strdup(APPLICATION_ID), ".", '/'),
-                  "/ui/tilepaint.ui", NULL);
+      g_strconcat("/", tmp_app_path, "/ui/tilepaint.ui", NULL);
+  g_free(tmp_app_path);
   builder = gtk_builder_new_from_resource(resource_path);
   g_free(resource_path);
 
@@ -509,6 +538,32 @@ GtkWidget *tilepaint_create_interface(TilepaintApplication *tilepaint) {
                    G_CALLBACK(board_size_change_cb), tilepaint);
   g_signal_connect(tilepaint->settings, "changed::board-theme",
                    G_CALLBACK(board_theme_change_cb), tilepaint);
+  g_signal_connect(tilepaint->settings, "changed::clue-color-feedback",
+                   G_CALLBACK(on_clue_color_feedback_changed), tilepaint);
+
+  /* Load preferences dialog and bind SwitchRow */
+  {
+    gchar *tmp_pref_path = g_strdup(APPLICATION_ID);
+    g_strdelimit(tmp_pref_path, ".", '/');
+    gchar *pref_path =
+        g_strconcat("/", tmp_pref_path, "/ui/preferences.ui", NULL);
+    g_free(tmp_pref_path);
+    GtkBuilder *pref_builder = gtk_builder_new_from_resource(pref_path);
+    g_free(pref_path);
+    gtk_builder_set_translation_domain(pref_builder, PACKAGE);
+    GObject *pref_dialog =
+        gtk_builder_get_object(pref_builder, "preferences_dialog");
+    if (pref_dialog) {
+      tilepaint->preferences_dialog = GTK_WIDGET(g_object_ref(pref_dialog));
+      GObject *row = gtk_builder_get_object(pref_builder,
+                                            "clue_color_feedback_row");
+      if (row) {
+        g_settings_bind(tilepaint->settings, "clue-color-feedback", row,
+                        "active", G_SETTINGS_BIND_DEFAULT);
+      }
+    }
+    g_object_unref(pref_builder);
+  }
 
   /* Listen for system color scheme changes for auto theme */
   AdwStyleManager *style_manager = adw_style_manager_get_default();
@@ -575,10 +630,15 @@ GtkWidget *tilepaint_create_interface(TilepaintApplication *tilepaint) {
 
   /* Load CSS for the drawing area */
   css_provider = gtk_css_provider_new();
-  gtk_css_provider_load_from_resource(
-      css_provider,
-      g_strconcat("/", g_strdelimit(g_strdup(APPLICATION_ID), ".", '/'),
-                  "/ui/tilepaint.css", NULL));
+  {
+    gchar *tmp_css_path = g_strdup(APPLICATION_ID);
+    g_strdelimit(tmp_css_path, ".", '/');
+    gchar *css_path =
+        g_strconcat("/", tmp_css_path, "/ui/tilepaint.css", NULL);
+    g_free(tmp_css_path);
+    gtk_css_provider_load_from_resource(css_provider, css_path);
+    g_free(css_path);
+  }
   gtk_style_context_add_provider_for_display(
       gdk_display_get_default(), GTK_STYLE_PROVIDER(css_provider),
       GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
@@ -730,8 +790,11 @@ void tilepaint_draw_cb(GtkDrawingArea *drawing_area, cairo_t *cr, int width,
                   tilepaint->drawing_area_y_offset);
 
   /* Draw Clues */
-  GdkRGBA text_col;
-  text_col = tilepaint->theme->unpainted_text;
+  gboolean clue_feedback = FALSE;
+  if (tilepaint->settings != NULL) {
+    clue_feedback = g_settings_get_boolean(tilepaint->settings,
+                                           "clue-color-feedback");
+  }
 
   /* Column Clues (Top Row) */
   for (int x = 0; x < tilepaint->board_size; x++) {
@@ -762,6 +825,19 @@ void tilepaint_draw_cb(GtkDrawingArea *drawing_area, cairo_t *cr, int width,
 
     /* Draw Text */
     if (!tilepaint->is_paused) {
+      int __count = 0;
+      if (tilepaint->board) {
+        for (int __yy = 0; __yy < tilepaint->board_size; __yy++) {
+          if (tilepaint->board[x][__yy].status & CELL_PAINTED)
+            __count++;
+        }
+      }
+      GdkRGBA text_col;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waggregate-return"
+      text_col = tilepaint_clue_color(tilepaint, __count,
+                                      tilepaint->col_clues[x], clue_feedback);
+#pragma GCC diagnostic pop
       gdk_cairo_set_source_rgba(cr, &text_col);
       gchar *text = g_strdup_printf("%d", tilepaint->col_clues[x]);
       PangoLayout *layout = pango_cairo_create_layout(cr);
@@ -812,6 +888,19 @@ void tilepaint_draw_cb(GtkDrawingArea *drawing_area, cairo_t *cr, int width,
 
     /* Draw Text */
     if (!tilepaint->is_paused) {
+      int __count = 0;
+      if (tilepaint->board) {
+        for (int __xx = 0; __xx < tilepaint->board_size; __xx++) {
+          if (tilepaint->board[__xx][y].status & CELL_PAINTED)
+            __count++;
+        }
+      }
+      GdkRGBA text_col;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waggregate-return"
+      text_col = tilepaint_clue_color(tilepaint, __count,
+                                      tilepaint->row_clues[y], clue_feedback);
+#pragma GCC diagnostic pop
       gdk_cairo_set_source_rgba(cr, &text_col);
       gchar *text = g_strdup_printf("%d", tilepaint->row_clues[y]);
       PangoLayout *layout = pango_cairo_create_layout(cr);
@@ -1314,8 +1403,10 @@ static void pause_cb(GSimpleAction *action, GVariant *parameter,
 static void help_cb(GSimpleAction *action, GVariant *parameters,
                     gpointer user_data) {
   TilepaintApplication *self = TILEPAINT_APPLICATION(user_data);
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   gtk_show_uri(GTK_WINDOW(self->window), "help:tilepaint", GDK_CURRENT_TIME);
+#pragma GCC diagnostic pop
 }
 
 /* XML Parsing for Release Notes */
@@ -1405,14 +1496,17 @@ static char *get_release_notes(const char *version) {
   /* Note: Path must match GResource prefix */
   /* Prefix: /io/github/tobagin/Tilepaint/Devel/gtk */
   /* Alias: io.github.tobagin.Tilepaint.Devel.metainfo.xml */
-  const gchar *resource_path =
-      g_strconcat("/", g_strdelimit(g_strdup(APPLICATION_ID), ".", '/'),
-                  "/gtk/", APPLICATION_ID, ".metainfo.xml", NULL);
+  gchar *tmp_metainfo_path = g_strdup(APPLICATION_ID);
+  g_strdelimit(tmp_metainfo_path, ".", '/');
+  gchar *resource_path = g_strconcat("/", tmp_metainfo_path, "/gtk/",
+                                     APPLICATION_ID, ".metainfo.xml", NULL);
+  g_free(tmp_metainfo_path);
 
   bytes = g_resources_lookup_data(resource_path, G_RESOURCE_LOOKUP_FLAGS_NONE,
                                   NULL);
   if (!bytes) {
     g_warning("Failed to load metainfo from resource: %s", resource_path);
+    g_free(resource_path);
     return NULL;
   }
   g_debug("Loaded metainfo size: %lu", g_bytes_get_size(bytes));
@@ -1433,6 +1527,7 @@ static char *get_release_notes(const char *version) {
 
   g_markup_parse_context_free(context);
   g_bytes_unref(bytes);
+  g_free(resource_path);
 
   return result;
 }
@@ -1482,9 +1577,13 @@ static void show_help_overlay_cb(GSimpleAction *action, GVariant *parameter,
   GtkBuilder *builder;
   GObject *overlay;
 
-  builder = gtk_builder_new_from_resource(
-      g_strconcat("/", g_strdelimit(g_strdup(APPLICATION_ID), ".", '/'),
-                  "/gtk/help-overlay.ui", NULL));
+  gchar *tmp_help_path = g_strdup(APPLICATION_ID);
+  g_strdelimit(tmp_help_path, ".", '/');
+  gchar *help_path =
+      g_strconcat("/", tmp_help_path, "/gtk/help-overlay.ui", NULL);
+  g_free(tmp_help_path);
+  builder = gtk_builder_new_from_resource(help_path);
+  g_free(help_path);
   overlay = gtk_builder_get_object(builder, "help_overlay");
 
   if (overlay && ADW_IS_DIALOG(overlay)) {
@@ -1567,4 +1666,22 @@ static void style_manager_dark_changed_cb(AdwStyleManager *style_manager,
   TilepaintApplication *self = TILEPAINT_APPLICATION(user_data);
   /* Re-trigger theme change to update if auto theme is active */
   board_theme_change_cb(self->settings, "board-theme", self);
+}
+
+static void on_clue_color_feedback_changed(GSettings *settings,
+                                           const gchar *key,
+                                           gpointer user_data) {
+  TilepaintApplication *self = TILEPAINT_APPLICATION(user_data);
+  if (self->drawing_area != NULL) {
+    gtk_widget_queue_draw(self->drawing_area);
+  }
+}
+
+static void preferences_cb(GSimpleAction *action, GVariant *parameter,
+                           gpointer user_data) {
+  TilepaintApplication *self = TILEPAINT_APPLICATION(user_data);
+  if (self->preferences_dialog) {
+    adw_dialog_present(ADW_DIALOG(self->preferences_dialog),
+                       GTK_WIDGET(self->window));
+  }
 }

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+    <rect width="128" height="128" fill="none"/>
+
+    <!-- Row 0: Clues -->
+    <g transform="translate(36, 8)">
+        <!-- Col 1 Clue: 2 -->
+        <rect width="28" height="28" rx="4" ry="4" fill="#3d3846" stroke="#1a1a1a" stroke-width="1" opacity="0.6"/>
+        <text x="14" y="20" text-anchor="middle" font-family="Montserrat, Sans" font-weight="bold" font-size="16" fill="#f6f5f4">2</text>
+    </g>
+    <g transform="translate(64, 8)">
+        <!-- Col 2 Clue: 2 -->
+        <rect width="28" height="28" rx="4" ry="4" fill="#3d3846" stroke="#1a1a1a" stroke-width="1" opacity="0.6"/>
+        <text x="14" y="20" text-anchor="middle" font-family="Montserrat, Sans" font-weight="bold" font-size="16" fill="#f6f5f4">2</text>
+    </g>
+    <g transform="translate(92, 8)">
+        <!-- Col 3 Clue: 1 -->
+        <rect width="28" height="28" rx="4" ry="4" fill="#3d3846" stroke="#1a1a1a" stroke-width="1" opacity="0.6"/>
+        <text x="14" y="20" text-anchor="middle" font-family="Montserrat, Sans" font-weight="bold" font-size="16" fill="#f6f5f4">1</text>
+    </g>
+
+    <!-- Row 1 -->
+    <g transform="translate(8, 36)">
+        <!-- Row 1 Clue: 2 -->
+        <rect width="28" height="28" rx="4" ry="4" fill="#3d3846" stroke="#1a1a1a" stroke-width="1" opacity="0.6"/>
+        <text x="14" y="20" text-anchor="middle" font-family="Montserrat, Sans" font-weight="bold" font-size="16" fill="#f6f5f4">2</text>
+    </g>
+    <!-- Painted board[0][0] -->
+    <rect x="36" y="36" width="28" height="28" rx="2" ry="2" fill="#1a1a1a" stroke="#3d3846" stroke-width="1"/>
+    <!-- Painted board[1][0] -->
+    <rect x="64" y="36" width="28" height="28" rx="2" ry="2" fill="#1a1a1a" stroke="#3d3846" stroke-width="1"/>
+    <!-- Unpainted board[2][0] -->
+    <rect x="92" y="36" width="28" height="28" rx="2" ry="2" fill="#241f31" stroke="#3d3846" stroke-width="1"/>
+
+    <!-- Row 2 -->
+    <g transform="translate(8, 64)">
+        <!-- Row 2 Clue: 0 -->
+        <rect width="28" height="28" rx="4" ry="4" fill="#3d3846" stroke="#1a1a1a" stroke-width="1" opacity="0.6"/>
+        <text x="14" y="20" text-anchor="middle" font-family="Montserrat, Sans" font-weight="bold" font-size="16" fill="#f6f5f4">0</text>
+    </g>
+    <!-- Unpainted board[0][1] -->
+    <rect x="36" y="64" width="28" height="28" rx="2" ry="2" fill="#241f31" stroke="#3d3846" stroke-width="1"/>
+    <!-- Unpainted board[1][1] -->
+    <rect x="64" y="64" width="28" height="28" rx="2" ry="2" fill="#241f31" stroke="#3d3846" stroke-width="1"/>
+    <!-- Unpainted board[2][1] -->
+    <rect x="92" y="64" width="28" height="28" rx="2" ry="2" fill="#241f31" stroke="#3d3846" stroke-width="1"/>
+
+    <!-- Row 3 -->
+    <g transform="translate(8, 92)">
+        <!-- Row 3 Clue: 3 -->
+        <rect width="28" height="28" rx="4" ry="4" fill="#3d3846" stroke="#1a1a1a" stroke-width="1" opacity="0.6"/>
+        <text x="14" y="20" text-anchor="middle" font-family="Montserrat, Sans" font-weight="bold" font-size="16" fill="#f6f5f4">3</text>
+    </g>
+    <!-- Painted board[0][2] -->
+    <rect x="36" y="92" width="28" height="28" rx="2" ry="2" fill="#1a1a1a" stroke="#3d3846" stroke-width="1"/>
+    <!-- Painted board[1][2] -->
+    <rect x="64" y="92" width="28" height="28" rx="2" ry="2" fill="#1a1a1a" stroke="#3d3846" stroke-width="1"/>
+    <!-- Painted board[2][2] -->
+    <rect x="92" y="92" width="28" height="28" rx="2" ry="2" fill="#1a1a1a" stroke="#3d3846" stroke-width="1"/>
+</svg>

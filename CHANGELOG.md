@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-08-17
+
+### Added
+- **Preferences & Clue Color Feedback**: New Preferences dialog (General → Gameplay) with a toggle to color row and column clues green when the painted count exactly matches the clue and red when over-painted. Disabled by default, live-updates without restart, and adapts to light/dark themes and all board sizes 5×5–10×10.
+
 ## [1.0.1] - 2026-02-08
 
 ### Fixed
